@@ -4,7 +4,18 @@ class BlogsController < ApplicationController
   # GET /blogs
   # GET /blogs.json
   def index
-    @blogs = Blog.all
+    @blogs = Blog.where(status: 3)
+  end
+  def index_1
+    @blogs = Blog.where(status: 1)
+  end
+
+  def index_2
+    @blogs = Blog.where(status: 2)
+  end
+
+  def index_4
+    @blogs = Blog.where(status: 4)
   end
 
   # GET /blogs/1
@@ -59,6 +70,10 @@ class BlogsController < ApplicationController
       format.html { redirect_to blogs_url, notice: 'Blog was successfully destroyed.' }
       format.json { head :no_content }
     end
+  end
+
+  def confirm
+    
   end
 
   private
