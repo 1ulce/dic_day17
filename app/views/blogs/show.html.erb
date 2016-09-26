@@ -9,6 +9,12 @@
   <strong>Status:</strong>
   <%= @blog.status %>
 </p>
-
-<%= link_to 'Edit', edit_blog_path(@blog) %> |
-<%= link_to 'Back', blogs_path %>
+<% if @blog.status == 1 %>
+  <%= form_for(@blog) do |f| %>
+    <%= f.hidden_field :title %>
+    <%= f.hidden_field :status %>
+    <%= f.submit 'comfirm' %>
+  <% end %>
+<% end %>
+<%= link_to 'Back', "/blogs/index_#{@blog.status.to_s}" %>
+  

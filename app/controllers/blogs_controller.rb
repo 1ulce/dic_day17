@@ -1,89 +1,91 @@
 class BlogsController < ApplicationController
-  before_action :set_blog, only: [:show, :edit, :update, :destroy]
-
-  # GET /blogs
-  # GET /blogs.json
+  before_action :set_blog, only: [:show, :edit, :update, :destroy, :confirm]
+  
   def index
+    # default画面(編集済み一覧)
     @blogs = Blog.where(status: 3)
   end
   def index_1
+    # 下書き一覧画面
     @blogs = Blog.where(status: 1)
   end
 
   def index_2
+    # 公開画面
     @blogs = Blog.where(status: 2)
   end
 
+  def index_3
+    # 編集済み画面
+    redirect_to action: 'index'
+  end
+
   def index_4
+    # 削除済み一覧画面
     @blogs = Blog.where(status: 4)
   end
 
-  # GET /blogs/1
-  # GET /blogs/1.json
   def show
+    if @blog.status == 4
+      redirect_to action: 'index', notice: "このブログは削除済みなため、表示できません"
+    end
   end
 
-  # GET /blogs/new
   def new
-    @blog = Blog.new
+    if params[:back]
+      @blog = Blog.new(blogs_params)
+    else
+      @blog = Blog.new(status: 0)
+    end
   end
 
-  # GET /blogs/1/edit
+  def create
+    @blog = Blog.new(blogs_params)
+    if @blog.save
+      # 一覧画面へ遷移して"ブログを作成しました！"とメッセージを表示します。
+      @blog.status = @blog.status + 1
+      @blog.save
+      redirect_to index_1_blogs_path, notice: "ブログを作成しました！"
+    else
+      # 入力フォームを再描画します。
+      render action: 'new'
+    end
+  end
+  
   def edit
   end
-
-  # POST /blogs
-  # POST /blogs.json
-  def create
-    @blog = Blog.new(blog_params)
-
-    respond_to do |format|
-      if @blog.save
-        format.html { redirect_to @blog, notice: 'Blog was successfully created.' }
-        format.json { render :show, status: :created, location: @blog }
-      else
-        format.html { render :new }
-        format.json { render json: @blog.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /blogs/1
-  # PATCH/PUT /blogs/1.json
+  
   def update
-    respond_to do |format|
-      if @blog.update(blog_params)
-        format.html { redirect_to @blog, notice: 'Blog was successfully updated.' }
-        format.json { render :show, status: :ok, location: @blog }
+    if @blog.update(blogs_params)
+      if @blog.status == 1
+        @blog.update(status: 2)
+        redirect_to index_2_blogs_path, notice: "ブログを公開しました！"
+      elsif @blog.status == 2
+        @blog.update(status: 3)
+        redirect_to blogs_path, notice: "ブログを編集しました！"
       else
-        format.html { render :edit }
-        format.json { render json: @blog.errors, status: :unprocessable_entity }
+        redirect_to blogs_path, notice: "ブログを編集しました！"
       end
+    else
+      # 入力フォームを再描画します。
+      render action: 'edit'
     end
   end
-
-  # DELETE /blogs/1
-  # DELETE /blogs/1.json
+  
   def destroy
-    @blog.destroy
-    respond_to do |format|
-      format.html { redirect_to blogs_url, notice: 'Blog was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    @blog.update(status: 4)
+    redirect_to index_4_blogs_path, notice: "ブログを削除しました！"
   end
 
   def confirm
-    
   end
-
+  
   private
-    # Use callbacks to share common setup or constraints between actions.
+    def blogs_params
+      params.require(:blog).permit(:title, :status)
+    end
     def set_blog
       @blog = Blog.find(params[:id])
     end
-
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def blog_params
-      params.require(:blog).permit(:title, :status)
-    end
 end
+
